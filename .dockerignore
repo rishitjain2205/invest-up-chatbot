@@ -1,0 +1,38 @@
+# Virtual environments
+venv/
+venv312/
+.venv/
+env/
+
+# Data files (too large)
+data/
+logs/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# OS files
+.DS_Store
+
+# Test files
+test_*.py
+
+# Backups
+backups/
+
+# Frontend v2
+frontend-v2/
+
+# Environment
+.env
+.env.*
