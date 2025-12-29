@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invest UP Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .chat-container { height: calc(100vh - 200px); }
+        .typing-indicator span {
+            animation: blink 1.4s infinite both;
+        }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink {
+            0%, 60%, 100% { opacity: 0.3; }
+            30% { opacity: 1; }
+        }
+        .message-enter {
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-gradient-to-r from-orange-600 to-orange-500 text-white shadow-lg">
+            <div class="max-w-4xl mx-auto px-4 py-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                        <span class="text-orange-600 font-bold text-xl">UP</span>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">Invest UP Assistant</h1>
+                        <p class="text-orange-100 text-sm">Your guide to investment in Uttar Pradesh</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-4xl mx-auto px-4 py-6">
+            <!-- Chat Messages -->
+            <div id="chatContainer" class="chat-container overflow-y-auto space-y-4 pb-4">
+                <!-- Welcome Message -->
+                <div class="flex gap-3 message-enter">
+                    <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span class="text-orange-600 text-sm font-bold">UP</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+                            <p class="text-gray-700">
+                                Welcome! I'm your Invest UP Assistant. I can help you with information about:
+                            </p>
+                            <ul class="mt-2 text-gray-600 text-sm space-y-1">
+                                <li>Investment policies and incentives</li>
+                                <li>Sector-specific opportunities</li>
+                                <li>Government orders and circulars</li>
+                                <li>Procedures for setting up industries</li>
+                            </ul>
+                            <p class="mt-3 text-gray-600 text-sm">Try one of these questions:</p>
+                        </div>
+
+                        <!-- Example Questions -->
+                        <div id="exampleQuestions" class="mt-3 flex flex-wrap gap-2">
+                            <button onclick="askQuestion('What are the incentives for IT companies in UP?')"
+                                    class="text-sm bg-orange-50 text-orange-700 px-3 py-1.5 rounded-full hover:bg-orange-100 transition">
+                                IT incentives
+                            </button>
+                            <button onclick="askQuestion('What is the UP Semiconductor Policy 2024?')"
+                                    class="text-sm bg-orange-50 text-orange-700 px-3 py-1.5 rounded-full hover:bg-orange-100 transition">
+                                Semiconductor Policy
+                            </button>
+                            <button onclick="askQuestion('What are the benefits for MSME units?')"
+                                    class="text-sm bg-orange-50 text-orange-700 px-3 py-1.5 rounded-full hover:bg-orange-100 transition">
+                                MSME benefits
+                            </button>
+                            <button onclick="askQuestion('How to get land for a factory in UP?')"
+                                    class="text-sm bg-orange-50 text-orange-700 px-3 py-1.5 rounded-full hover:bg-orange-100 transition">
+                                Land acquisition
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="sticky bottom-0 bg-gray-50 pt-4">
+                <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-2">
+                    <div class="flex gap-2">
+                        <input type="text"
+                               id="questionInput"
+                               placeholder="Ask about investment opportunities in Uttar Pradesh..."
+                               class="flex-1 px-4 py-3 text-gray-700 focus:outline-none"
+                               onkeypress="handleKeyPress(event)">
+                        <button onclick="sendQuestion()"
+                                id="sendButton"
+                                class="bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span>Send</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <p class="text-center text-gray-400 text-xs mt-2">
+                    Powered by official Invest UP documents |
+                    <a href="https://invest.up.gov.in" target="_blank" class="hover:text-orange-600">invest.up.gov.in</a>
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendQuestion();
+            }
+        }
+
+        function askQuestion(question) {
+            document.getElementById('questionInput').value = question;
+            sendQuestion();
+        }
+
+        async function sendQuestion() {
+            const input = document.getElementById('questionInput');
+            const button = document.getElementById('sendButton');
+            const question = input.value.trim();
+
+            if (!question) return;
+
+            // Disable input
+            input.disabled = true;
+            button.disabled = true;
+
+            // Add user message
+            addMessage(question, 'user');
+            input.value = '';
+
+            // Show typing indicator
+            showTyping();
+
+            try {
+                const response = await fetch(`${API_URL}/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question, top_k: 5 })
+                });
+
+                if (!response.ok) throw new Error('Failed to get response');
+
+                const data = await response.json();
+                hideTyping();
+                addMessage(data.answer, 'assistant', data.sources);
+
+            } catch (error) {
+                hideTyping();
+                addMessage('Sorry, I encountered an error. Please make sure the API server is running on localhost:8000.', 'assistant');
+                console.error(error);
+            } finally {
+                input.disabled = false;
+                button.disabled = false;
+                input.focus();
+            }
+        }
+
+        function addMessage(text, sender, sources = []) {
+            const container = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex gap-3 message-enter';
+
+            if (sender === 'user') {
+                messageDiv.innerHTML = `
+                    <div class="flex-1 flex justify-end">
+                        <div class="bg-orange-600 text-white rounded-lg p-4 max-w-[80%]">
+                            <p>${escapeHtml(text)}</p>
+                        </div>
+                    </div>
+                    <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                `;
+            } else {
+                let sourcesHtml = '';
+                if (sources.length > 0) {
+                    const uniqueSources = sources.filter((s, i, arr) =>
+                        arr.findIndex(x => x.url === s.url) === i && s.url
+                    ).slice(0, 3);
+
+                    if (uniqueSources.length > 0) {
+                        sourcesHtml = `
+                            <div class="mt-3 pt-3 border-t border-gray-100">
+                                <p class="text-xs text-gray-500 font-medium mb-1">Sources:</p>
+                                <div class="space-y-1">
+                                    ${uniqueSources.map(s => `
+                                        <a href="${s.url}" target="_blank"
+                                           class="text-xs text-orange-600 hover:underline block truncate">
+                                            ${s.url}
+                                        </a>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+
+                messageDiv.innerHTML = `
+                    <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span class="text-orange-600 text-sm font-bold">UP</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100 max-w-[90%]">
+                            <div class="prose prose-sm text-gray-700">${formatMarkdown(text)}</div>
+                            ${sourcesHtml}
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function showTyping() {
+            const container = document.getElementById('chatContainer');
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typingIndicator';
+            typingDiv.className = 'flex gap-3';
+            typingDiv.innerHTML = `
+                <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span class="text-orange-600 text-sm font-bold">UP</span>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+                    <div class="typing-indicator flex gap-1">
+                        <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+                        <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+                        <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+                    </div>
+                </div>
+            `;
+            container.appendChild(typingDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function hideTyping() {
+            const typing = document.getElementById('typingIndicator');
+            if (typing) typing.remove();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatMarkdown(text) {
+            // Basic markdown formatting
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>')
+                .replace(/^(.*)$/gm, '<p>$1</p>')
+                .replace(/<p><\/p>/g, '');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invest UP Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    <span>Invest UP</span>
+                </div>
+                <button class="new-chat-btn" onclick="newChat()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    New Chat
+                </button>
+            </div>
+
+            <div class="sidebar-search">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" placeholder="Search conversations..." id="search-conversations">
+            </div>
+
+            <div class="conversations-list" id="conversations-list">
+                <!-- Conversations will be loaded here -->
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="stats-mini">
+                    <span class="stat-badge">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                        {{ stats.total_documents|default(0) }} docs
+                    </span>
+                </div>
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+                    <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Mobile sidebar toggle -->
+        <button class="sidebar-toggle" onclick="toggleSidebar()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+
+        <!-- Main Chat Area -->
+        <main class="chat-main">
+            <!-- Chat Header -->
+            <header class="chat-header">
+                <div class="chat-title">
+                    <h1>Invest UP Assistant</h1>
+                    <span class="subtitle">AI-powered knowledge base for UP investments</span>
+                </div>
+                <div class="header-actions">
+                    <button class="header-btn" onclick="clearChat()" title="Clear chat">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Messages Container -->
+            <div class="messages-container" id="messages-container">
+                <!-- Welcome Message -->
+                <div class="welcome-screen" id="welcome-screen">
+                    <div class="welcome-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                    </div>
+                    <h2>Welcome to Invest UP Assistant</h2>
+                    <p>Ask questions about UP investment policies, incentives, procedures, and more.</p>
+
+                    <div class="quick-prompts">
+                        <button class="quick-prompt" onclick="sendQuickPrompt(this)">
+                            What are the investment incentives in UP?
+                        </button>
+                        <button class="quick-prompt" onclick="sendQuickPrompt(this)">
+                            What subsidies are available for MSMEs?
+                        </button>
+                        <button class="quick-prompt" onclick="sendQuickPrompt(this)">
+                            IT and Electronics sector policies
+                        </button>
+                        <button class="quick-prompt" onclick="sendQuickPrompt(this)">
+                            Startup policy benefits in UP
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Messages will be appended here -->
+                <div class="messages-list" id="messages-list"></div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area">
+                <div class="input-container">
+                    <div class="input-wrapper">
+                        <textarea
+                            id="message-input"
+                            placeholder="Ask about UP investments..."
+                            rows="1"
+                            onkeydown="handleKeyDown(event)"
+                            oninput="autoResize(this)"
+                        ></textarea>
+                        <div class="input-actions">
+                            <button class="send-btn" id="send-btn" onclick="sendMessage()" disabled>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="input-hint">Press Enter to send, Shift+Enter for new line</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Sources Modal -->
+    <div class="modal-overlay" id="sources-modal" onclick="closeSourcesModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>Source Documents</h3>
+                <button class="modal-close" onclick="closeSourcesModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" id="sources-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let conversations = JSON.parse(localStorage.getItem('conversations') || '[]');
+        let currentConversationId = null;
+        let isLoading = false;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTheme();
+            renderConversations();
+            setupInputListener();
+
+            // Start new conversation if none exists
+            if (conversations.length === 0) {
+                newChat();
+            } else {
+                // Load most recent conversation
+                loadConversation(conversations[0].id);
+            }
+        });
+
+        // Theme management
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const newTheme = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // Sidebar management
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // Conversation management
+        function newChat() {
+            const id = Date.now().toString();
+            const conversation = {
+                id,
+                title: 'New Conversation',
+                messages: [],
+                createdAt: new Date().toISOString()
+            };
+            conversations.unshift(conversation);
+            saveConversations();
+            loadConversation(id);
+            renderConversations();
+        }
+
+        function loadConversation(id) {
+            currentConversationId = id;
+            const conversation = conversations.find(c => c.id === id);
+            if (!conversation) return;
+
+            const messagesList = document.getElementById('messages-list');
+            const welcomeScreen = document.getElementById('welcome-screen');
+
+            messagesList.innerHTML = '';
+
+            if (conversation.messages.length === 0) {
+                welcomeScreen.style.display = 'flex';
+            } else {
+                welcomeScreen.style.display = 'none';
+                conversation.messages.forEach(msg => {
+                    appendMessage(msg.role, msg.content, msg.sources, false);
+                });
+            }
+
+            // Update active state in sidebar
+            document.querySelectorAll('.conversation-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.id === id);
+            });
+
+            // Close sidebar on mobile
+            document.getElementById('sidebar').classList.remove('open');
+        }
+
+        function deleteConversation(id, event) {
+            event.stopPropagation();
+            conversations = conversations.filter(c => c.id !== id);
+            saveConversations();
+            renderConversations();
+
+            if (currentConversationId === id) {
+                if (conversations.length > 0) {
+                    loadConversation(conversations[0].id);
+                } else {
+                    newChat();
+                }
+            }
+        }
+
+        function saveConversations() {
+            localStorage.setItem('conversations', JSON.stringify(conversations));
+        }
+
+        function renderConversations() {
+            const list = document.getElementById('conversations-list');
+            list.innerHTML = conversations.map(conv => `
+                <div class="conversation-item ${conv.id === currentConversationId ? 'active' : ''}"
+                     data-id="${conv.id}"
+                     onclick="loadConversation('${conv.id}')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    <span class="conv-title">${escapeHtml(conv.title)}</span>
+                    <button class="delete-conv" onclick="deleteConversation('${conv.id}', event)" title="Delete">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Input handling
+        function setupInputListener() {
+            const input = document.getElementById('message-input');
+            input.addEventListener('input', () => {
+                const hasText = input.value.trim().length > 0;
+                document.getElementById('send-btn').disabled = !hasText || isLoading;
+            });
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+        }
+
+        // Quick prompts
+        function sendQuickPrompt(btn) {
+            const text = btn.textContent.trim();
+            document.getElementById('message-input').value = text;
+            sendMessage();
+        }
+
+        // Send message
+        async function sendMessage() {
+            const input = document.getElementById('message-input');
+            const query = input.value.trim();
+
+            if (!query || isLoading) return;
+
+            isLoading = true;
+            document.getElementById('send-btn').disabled = true;
+            document.getElementById('welcome-screen').style.display = 'none';
+
+            // Add user message
+            appendMessage('user', query);
+            addToConversation('user', query);
+
+            // Update conversation title if first message
+            const conversation = conversations.find(c => c.id === currentConversationId);
+            if (conversation && conversation.messages.length === 1) {
+                conversation.title = query.substring(0, 40) + (query.length > 40 ? '...' : '');
+                saveConversations();
+                renderConversations();
+            }
+
+            input.value = '';
+            autoResize(input);
+
+            // Show typing indicator
+            const typingId = showTypingIndicator();
+
+            try {
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
+
+                const data = await response.json();
+                removeTypingIndicator(typingId);
+
+                if (data.error) {
+                    appendMessage('assistant', 'Sorry, an error occurred: ' + data.error);
+                    addToConversation('assistant', 'Sorry, an error occurred: ' + data.error);
+                } else {
+                    appendMessage('assistant', data.answer, data.sources);
+                    addToConversation('assistant', data.answer, data.sources);
+                }
+            } catch (error) {
+                removeTypingIndicator(typingId);
+                appendMessage('assistant', 'Sorry, there was an error processing your request.');
+                addToConversation('assistant', 'Sorry, there was an error processing your request.');
+            }
+
+            isLoading = false;
+            document.getElementById('send-btn').disabled = false;
+        }
+
+        function addToConversation(role, content, sources = null) {
+            const conversation = conversations.find(c => c.id === currentConversationId);
+            if (conversation) {
+                conversation.messages.push({ role, content, sources });
+                saveConversations();
+            }
+        }
+
+        // Message rendering
+        function appendMessage(role, content, sources = null, animate = true) {
+            const messagesList = document.getElementById('messages-list');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}-message ${animate ? 'animate-in' : ''}`;
+
+            const avatar = role === 'user' ? `
+                <div class="avatar user-avatar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </div>
+            ` : `
+                <div class="avatar assistant-avatar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                </div>
+            `;
+
+            const formattedContent = formatMessage(content, sources);
+
+            let sourcesBtn = '';
+            if (sources && sources.length > 0) {
+                sourcesBtn = `
+                    <button class="sources-btn" onclick='showSources(${JSON.stringify(sources).replace(/'/g, "&#39;")})'>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                        ${sources.length} sources
+                    </button>
+                `;
+            }
+
+            messageDiv.innerHTML = `
+                ${avatar}
+                <div class="message-content">
+                    <div class="message-text">${formattedContent}</div>
+                    ${sourcesBtn}
+                </div>
+            `;
+
+            messagesList.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        function formatMessage(text, sources) {
+            // Convert newlines to <br>
+            text = text.replace(/\n/g, '<br>');
+
+            // Handle document citations with links
+            if (sources && sources.length > 0) {
+                sources.forEach((source, index) => {
+                    if (source.doc_name) {
+                        const escapedName = source.doc_name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        const linkUrl = source.link_url || source.source_url || '#';
+                        const chunkIndex = source.chunk_index || 0;
+                        const totalChunks = source.total_chunks || 1;
+                        const pageInfo = totalChunks > 1 ? ` (Section ${chunkIndex + 1}/${totalChunks})` : '';
+
+                        // Match [Document: DocName] format
+                        const docRegex = new RegExp('\\[Document:\\s*' + escapedName + '\\]', 'gi');
+                        text = text.replace(docRegex, `<a href="${escapeHtml(linkUrl)}" target="_blank" class="doc-link">${escapeHtml(source.doc_name)}</a><span class="page-ref">${pageInfo}</span>`);
+
+                        // Match just [DocName] format
+                        const simpleRegex = new RegExp('\\[' + escapedName + '\\]', 'gi');
+                        text = text.replace(simpleRegex, `<a href="${escapeHtml(linkUrl)}" target="_blank" class="doc-link">${escapeHtml(source.doc_name)}</a><span class="page-ref">${pageInfo}</span>`);
+                    }
+                });
+            }
+
+            // Convert [Document X] to styled citation
+            text = text.replace(/\[Document (\d+)\]/gi, '<span class="citation">[Doc $1]</span>');
+
+            // Bold text
+            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+            // Convert markdown headers to styled text
+            text = text.replace(/^#{1,4}\s*(.+)$/gm, '<strong class="section-header">$1</strong>');
+
+            // Bullet points
+            text = text.replace(/^- (.+)$/gm, '<li>$1</li>');
+            text = text.replace(/(<li>.*<\/li>)+/gs, '<ul class="message-list">$&</ul>');
+
+            return text;
+        }
+
+        function showTypingIndicator() {
+            const messagesList = document.getElementById('messages-list');
+            const typingDiv = document.createElement('div');
+            const id = 'typing-' + Date.now();
+            typingDiv.id = id;
+            typingDiv.className = 'message assistant-message typing-indicator';
+            typingDiv.innerHTML = `
+                <div class="avatar assistant-avatar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                </div>
+                <div class="message-content">
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            `;
+            messagesList.appendChild(typingDiv);
+            scrollToBottom();
+            return id;
+        }
+
+        function removeTypingIndicator(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('messages-container');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Sources modal
+        function showSources(sources) {
+            const modal = document.getElementById('sources-modal');
+            const content = document.getElementById('sources-content');
+
+            content.innerHTML = sources.map((source, index) => {
+                const linkUrl = source.link_url || source.source_url || '';
+                return `
+                    <div class="source-card">
+                        <div class="source-header">
+                            <span class="source-num">${index + 1}</span>
+                            ${linkUrl ?
+                                `<a href="${escapeHtml(linkUrl)}" target="_blank" class="source-title-link">${escapeHtml(source.doc_name || 'Document')}</a>` :
+                                `<span class="source-title">${escapeHtml(source.doc_name || 'Document')}</span>`
+                            }
+                            <span class="source-score">${(source.score * 100).toFixed(0)}%</span>
+                        </div>
+                        <div class="source-meta">
+                            <span class="meta-tag">${escapeHtml(source.portal || '')}</span>
+                            <span class="meta-tag">${escapeHtml(source.section || '')}</span>
+                            <span class="meta-tag">${escapeHtml(source.doc_type || '')}</span>
+                        </div>
+                        <div class="source-excerpt">${escapeHtml(source.text || '').substring(0, 300)}...</div>
+                    </div>
+                `;
+            }).join('');
+
+            modal.classList.add('open');
+        }
+
+        function closeSourcesModal(event) {
+            if (!event || event.target === document.getElementById('sources-modal')) {
+                document.getElementById('sources-modal').classList.remove('open');
+            }
+        }
+
+        // Clear chat
+        function clearChat() {
+            if (confirm('Clear all messages in this conversation?')) {
+                const conversation = conversations.find(c => c.id === currentConversationId);
+                if (conversation) {
+                    conversation.messages = [];
+                    conversation.title = 'New Conversation';
+                    saveConversations();
+                    loadConversation(currentConversationId);
+                    renderConversations();
+                }
+            }
+        }
+
+        // Utility
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML;
+        }
+
+        // Close modal on escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeSourcesModal();
+            }
+        });
+    </script>
+</body>
+</html>
